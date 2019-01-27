@@ -1,0 +1,122 @@
+import streams
+from nxp.hexiwear import hexiwear
+# Hexiwear class 
+# (self, battery_en=True, oled_en=True, amb_light_en=True, 
+# heart_rate_en=True, temp_humid_en=True, gyro_en=True, 
+# acc_magn_en=True, pressure_en=True, bt_driver_en=True)
+import threading
+# import zLogo
+
+streams.serial()
+
+function guardarEdad(edad):
+    archivoUsr = open("user.txt","w+")
+    archivoUsr.write(\r\n edad)
+    archivoUsr.close()
+
+# ---- CLASSE PARA EL USUARIO ----
+class Usuario(hexiwear):
+    edad = 0
+    def __init__(self, edad):
+        self.edad = edad
+
+    def incrementarEdad():
+        hexi.vibration(100)
+        edad = edad + 1
+            
+    def setEdad(edadEnviada):
+        edad = edadEnviada
+    
+    def getEdad():
+        return edad
+# --- FIN CLASE USUARIO -------
+
+
+def pressed_up():
+    print("flecha arriba presionado")
+    hexi.vibration(100)
+    hexi.enable_bt_upd_sensors()
+
+def pressed_down():
+    print("flecha abajo presionado")
+    hexi.vibration(100)
+    hexi.disable_bt_upd_sensors()
+    print("desabilitando sensores upd_sensors")
+
+def toggle_ble():
+    try:
+        print("Boton izquierdo presionado")
+        hexi.vibration(100)
+        hexi.bt_driver.toggle_adv_mode()
+    except Exception as e:
+        print("error enel boton izquierdo", e)
+
+def toggle_touch():
+    try:
+        print("Boton derecho presionado")
+        #hexi.vibration(100)
+        hexi.bt_driver.toggle_tsi_group()
+    except Exception as e:
+        print("error on right_pressed", e)
+    
+def print_paircode():
+    # print the pair code in the serial monitor
+    print("codigo de acoplamiento:",hexi.bt_driver.passkey)
+
+# used to check the bluetooth status
+pinMode(LED2, OUTPUT)
+
+try:
+    print("Constructor de la calse hexiwear")
+    # DESACTIVAR lo que no se requiere
+    # hexi = hexiwear.HEXIWEAR(self, battery_en=True, oled_en=True, amb_light_en=True, 
+# heart_rate_en=True, temp_humid_en=False, gyro_en=False, 
+# acc_magn_en=False, pressure_en=True, bt_driver_en=False)
+    hexi = hexiwear.HEXIWEAR()
+    # print("start")
+    
+    hexi.fill_screen(0xFFFF,False) #Colores en u16
+    # hexi.fill_screen(False,False) #Colores en u16
+    
+    # asignar la funcion toggle_ble al boton de izquierda (enabled/disabled ble)
+    hexi.attach_button_left(toggle_ble)
+    # asignar  la funcion toggle_touchal boton derecha (toggle active button - left/right pair)
+    hexi.attach_button_right(toggle_touch)
+    # asignar  la funcion pressed_up functional boton flecha arriba - enabled ble update sensor value thread
+    hexi.attach_button_up(pressed_up)
+    # asignar  la funcion pressed_up al boton flecha abajo - disabled ble update sensor value thread
+    hexi.attach_button_down(pressed_down)
+    # asignar  la funcion print_paircode al bluetooth pairing request
+    hexi.attach_passkey(print_paircode)
+    print("Ready!")
+    print("------------------------------------------------------------------------------")
+except Exception as e:
+    print(e)
+    
+    
+# def read_bt_status():
+#     while True:
+#         bt_on, bt_touch, bt_link = hexi.bluetooth_info()
+#         digitalWrite(LED2, 0 if bt_on==1 else 1)
+#         sleep(1000)
+
+# thread(read_bt_status)
+
+#hexi.draw_image(zLogo.zz, 38, 10, 20, 20)
+# hexi.draw_text("Putito!", 0, 60, 96, 20, align=3, color=0xFFFF, background=0x0000, encode=False)
+
+#ciclo principal
+while True:
+    try:
+        bl, chg = hexi.get_battery_level(chg_state=True)
+        print("Battery Level:", bl, "% - Charging:", chg)
+
+        print("Heart Rate", hr, "bpm")
+        if(hr > 100):
+            hexi.draw_text("Cuidado!", 0, 60, 96, 20, align=3, color=0xFFFF, background=0x0000, encode=False)
+
+        print("------------------------------------------------------------------------------")
+        sleep(3000)
+    except Exception as e:
+        print(e)
+        sleep(3000)
